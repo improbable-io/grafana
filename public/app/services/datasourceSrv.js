@@ -21,7 +21,7 @@ function (angular, _, config) {
           self.metricSources.push({
             value: key === config.defaultDatasource ? null : key,
             name: key,
-            meta: value.meta,
+            meta: value.meta
           });
         }
         if (value.meta && value.meta.annotations) {
@@ -37,6 +37,37 @@ function (angular, _, config) {
           return -1;
         }
         return 0;
+      });
+    };
+
+    this.add = function(dt) {
+      this.datasources[dt.name] = dt;
+
+      if (_.findIndex(this.metricSources, { name: dt.name }) === -1) {
+        this.metricSources.push({ name: dt.name, value: dt.value, meta: {} });
+      }
+    };
+
+    this.remove = function(dtname) {
+      if(this.datasources[dtname]){
+        delete this.datasources[dtname];
+      }
+
+      var idx = _.findIndex(this.metricSources, { name: dtname });
+      if (idx !== -1) {
+        this.metricSources.splice(idx, 1);
+      }
+    };
+
+    this.reset = function() {
+      _.each(_.keys(this.datasources), function(key) {
+        if (/^\$./.test(key)) {
+          delete self.datasources[key];
+        }
+      });
+
+      this.metricSources = this.metricSources.filter(function(source) {
+        return !/^\$./.test(source.name);
       });
     };
 

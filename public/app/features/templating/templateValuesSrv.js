@@ -63,6 +63,18 @@ function (angular, _, kbn) {
       return this.setVariableValue(variable, option);
     };
 
+    this._updateDatasourceVars = function(changedVariable) {
+      $rootScope.$broadcast('datasource-changed', {
+        datasource: changedVariable.current && changedVariable.current.value
+      });
+
+      _.each(self.variables, function (variable) {
+        if (variable.type === 'query' && variable.datasource === '$' + changedVariable.name) {
+          self._updateDatasourceVars(changedVariable);
+        }
+      });
+    };
+
     this.updateAutoInterval = function(variable) {
       if (!variable.auto) { return; }
 
@@ -85,11 +97,17 @@ function (angular, _, kbn) {
       self.selectOptionsForCurrentValue(variable);
 
       templateSrv.updateTemplateData();
+
       return self.updateOptionsInChildVariables(variable);
     };
 
     this.variableUpdated = function(variable) {
       templateSrv.updateTemplateData();
+
+      if (variable.type === "datasource") {
+        self._updateDatasourceVars(variable);
+      }
+
       return this.updateOptionsInChildVariables(variable);
     };
 
@@ -124,7 +142,13 @@ function (angular, _, kbn) {
         return $q.when([]);
       }
 
-      return datasourceSrv.get(variable.datasource)
+      var datasourceName = variable.datasource;
+
+      if (/^\$./.test(datasourceName)) {
+        datasourceName = templateSrv.replace(datasourceName);
+      }
+
+      return datasourceSrv.get(datasourceName)
         .then(_.partial(this.updateOptionsFromMetricFindQuery, variable))
         .then(_.partial(this.updateTags, variable))
         .then(_.partial(this.validateVariableSelectionState, variable));

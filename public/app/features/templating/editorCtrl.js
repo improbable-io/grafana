@@ -7,7 +7,7 @@ function (angular, _) {
 
   var module = angular.module('grafana.controllers');
 
-  module.controller('TemplateEditorCtrl', function($scope, datasourceSrv, templateSrv, templateValuesSrv) {
+  module.controller('TemplateEditorCtrl', function($scope, datasourceSrv, templateSrv, templateValuesSrv, datasourceVarSrv) {
 
     var replacementDefaults = {
       type: 'query',
@@ -29,6 +29,16 @@ function (angular, _) {
       });
 
       $scope.variables = templateSrv.variables;
+
+      $scope.dtsSelection = [];
+      $scope.dtsSelector = [];
+
+      _.each($scope.datasources, function(cvar) {
+        if (!/^\$./.test(cvar.name)) {
+          $scope.dtsSelector.push(cvar.name);
+        }
+      });
+
       $scope.reset();
 
       $scope.$watch('mode', function(val) {
@@ -49,8 +59,26 @@ function (angular, _) {
       });
     };
 
+    $scope.toggleDtsSelection = function(dts) {
+      var idx = $scope.dtsSelection.indexOf(dts);
+
+      if (idx > -1) {
+        $scope.dtsSelection.splice(idx, 1);
+      }
+      else {
+        $scope.dtsSelection.push(dts);
+      }
+
+      $scope.current.query = $scope.dtsSelection.join(',');
+      $scope.updateSubmenuVisibility();
+    };
+
     $scope.add = function() {
       if ($scope.isValid()) {
+        if($scope.current && $scope.current.type === 'datasource') {
+          datasourceVarSrv.init($scope.current.name);
+        }
+
         $scope.variables.push($scope.current);
         $scope.update();
         $scope.updateSubmenuVisibility();
@@ -94,6 +122,10 @@ function (angular, _) {
         $scope.current.type = 'query';
         $scope.current.allFormat = 'glob';
       }
+
+      if (variable.type === 'datasource' && variable.query) {
+        $scope.dtsSelection = variable.query.split(",");
+      }
     };
 
     $scope.update = function() {
@@ -122,6 +154,11 @@ function (angular, _) {
     $scope.removeVariable = function(variable) {
       var index = _.indexOf($scope.variables, variable);
       $scope.variables.splice(index, 1);
+
+      if (variable && variable.type === 'datasource') {
+        datasourceVarSrv.remove(variable.name);
+      }
+
       $scope.updateSubmenuVisibility();
     };
 

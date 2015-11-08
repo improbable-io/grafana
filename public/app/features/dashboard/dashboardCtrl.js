@@ -4,7 +4,7 @@ define([
   'config',
   'lodash',
 ],
-function (angular, $, config) {
+function (angular, $, config, _) {
   "use strict";
 
   var module = angular.module('grafana.controllers');
@@ -17,6 +17,8 @@ function (angular, $, config) {
       templateValuesSrv,
       dynamicDashboardSrv,
       dashboardSrv,
+      datasourceSrv,
+      datasourceVarSrv,
       unsavedChangesSrv,
       dashboardViewStateSrv,
       contextSrv,
@@ -39,6 +41,14 @@ function (angular, $, config) {
       $rootScope.performance.dashboardLoadStart = new Date().getTime();
       $rootScope.performance.panelsInitialized = 0;
       $rootScope.performance.panelsRendered = 0;
+
+      //reset all variable datasources
+      datasourceSrv.reset();
+
+      //setup variable datasources in this dashboard
+      if (data.dashboard.templating) {
+        $scope.updateDataSources(data.dashboard.templating);
+      }
 
       var dashboard = dashboardSrv.create(data.dashboard, data.meta);
       dashboardSrv.setCurrent(dashboard);
@@ -66,6 +76,14 @@ function (angular, $, config) {
       }).catch(function(err) {
         if (err.data && err.data.message) { err.message = err.data.message; }
         $scope.appEvent("alert-error", ['Dashboard init failed', 'Template variables could not be initialized: ' + err.message]);
+      });
+    };
+
+    $scope.updateDataSources = function(data) {
+      _.each(data.list, function(variable) {
+        if(variable.type === 'datasource') {
+          datasourceVarSrv.init(variable.name, variable.current.value);
+        }
       });
     };
 

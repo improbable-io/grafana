@@ -2,8 +2,8 @@ define([
   'angular',
   'jquery',
   'app/core/config',
-  'moment',
   'lodash',
+  'moment',
 ],
 function (angular, $, config, _, moment) {
   "use strict";

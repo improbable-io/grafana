@@ -3,8 +3,9 @@ define([
   'jquery',
   'app/core/config',
   'moment',
+  'lodash',
 ],
-function (angular, $, config, moment) {
+function (angular, $, config, _, moment) {
   "use strict";
 
   var module = angular.module('grafana.controllers');

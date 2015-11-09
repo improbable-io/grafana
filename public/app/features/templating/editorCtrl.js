@@ -27,7 +27,7 @@ function (angular, _) {
       $scope.mode = 'list';
 
       $scope.datasources = _.filter(datasourceSrv.getMetricSources(), function(ds) {
-        return !ds.meta.builtIn;
+        return !ds.meta.builtIn && !ds.meta.dynamic;
       });
 
       $scope.variables = templateSrv.variables;
@@ -55,6 +55,20 @@ function (angular, _) {
           });
         }
       });
+    };
+
+    $scope.toggleDtsSelection = function(dts) {
+      var idx = $scope.dtsSelection.indexOf(dts);
+
+      if (idx > -1) {
+        $scope.dtsSelection.splice(idx, 1);
+      }
+      else {
+        $scope.dtsSelection.push(dts);
+      }
+
+      $scope.current.query = $scope.dtsSelection.join(',');
+      $scope.runQuery();
     };
 
     $scope.add = function() {
@@ -115,7 +129,6 @@ function (angular, _) {
       if (variable.type === 'datasource' && variable.query) {
         $scope.dtsSelection = variable.query.split(",");
       }
-<<<<<<< 53fc986915ff581f0be317697622587ffe640cc7
     };
 
     $scope.duplicate = function(variable) {
@@ -123,8 +136,6 @@ function (angular, _) {
       $scope.variables.push($scope.current);
       $scope.current.name = 'copy_of_'+variable.name;
       $scope.updateSubmenuVisibility();
-=======
->>>>>>> Add Dynamic Datasources
     };
 
     $scope.update = function() {

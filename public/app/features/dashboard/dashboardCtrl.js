@@ -75,11 +75,13 @@ function (angular, $, config, moment) {
     $scope.initDynamicDatasources = function(dashboard) {
       datasourceSrv.resetDynamicDatasources();
 
-      dashboard.templating.list.forEach(function(variable) {
-        if (variable.type === 'datasource') {
-          datasourceSrv.addDynamicDatasource(variable.name, variable.current.value);
-        }
-      });
+      if (dashboard.templating) {
+        dashboard.templating.list.forEach(function(variable) {
+          if (variable.type === 'datasource') {
+           datasourceSrv.addDynamicDatasource(variable.name, variable.current.value);
+          }
+        });
+      }
     };
 
     $scope.updateTopNavPartial = function() {

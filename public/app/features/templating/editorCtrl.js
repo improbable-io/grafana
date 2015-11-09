@@ -122,6 +122,7 @@ function (angular, _) {
       if (variable.type === 'datasource' && variable.query) {
         $scope.dtsSelection = variable.query.split(",");
       }
+<<<<<<< 53fc986915ff581f0be317697622587ffe640cc7
     };
 
     $scope.duplicate = function(variable) {
@@ -129,6 +130,8 @@ function (angular, _) {
       $scope.variables.push($scope.current);
       $scope.current.name = 'copy_of_'+variable.name;
       $scope.updateSubmenuVisibility();
+=======
+>>>>>>> Add Dynamic Datasources
     };
 
     $scope.update = function() {

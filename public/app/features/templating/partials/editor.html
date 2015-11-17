@@ -177,6 +177,18 @@
 						</label>
 					</div>
 
+					<div ng-show="current.type === 'datasource'">
+						<label ng-repeat="dts in dtsSelector" class="checkbox-inline">
+							<input
+								type="checkbox"
+								name="selectedDatasources[]"
+								value="{{dts}}"
+								ng-checked="dtsSelection.indexOf(dts) > -1"
+								ng-click="toggleDtsSelection(dts)"
+							> {{dts}}
+						</label>
+					</div>
+
 					<div ng-show="current.type === 'query'">
 
 						<div class="tight-form">

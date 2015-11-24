@@ -133,7 +133,6 @@ func getEngine() (*xorm.Engine, error) {
 				return nil, err
 			}
 			mysql.RegisterTLSConfig("custom", tlsCert)
-			println("Using tls")
 			cnnstr += "&tls=custom"
 		}
 	case "postgres":

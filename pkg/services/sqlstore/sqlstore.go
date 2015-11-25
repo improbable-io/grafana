@@ -22,11 +22,11 @@ import (
 )
 
 type MySQLConfig struct {
-	UseTls         string
-	CaPath         string
+	SslMode string
+	CaCertPath string
 	ClientKeyPath  string
 	ClientCertPath string
-	ServerName     string
+	ServerCertName string
 }
 
 var (
@@ -126,8 +126,7 @@ func getEngine() (*xorm.Engine, error) {
 	case "mysql":
 		cnnstr = fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8",
 			DbCfg.User, DbCfg.Pwd, DbCfg.Host, DbCfg.Name)
-		if mysqlConfig.UseTls != "false" {
-			fmt.Printf("%+v", mysqlConfig)
+		if mysqlConfig.SslMode != "false" {
 			tlsCert, err := makeCert("custom", mysqlConfig)
 			if err != nil {
 				return nil, err
@@ -178,10 +177,10 @@ func LoadConfig() {
 	DbCfg.Path = sec.Key("path").MustString("data/grafana.db")
 
 	if DbCfg.Type == "mysql" {
-		mysqlConfig.UseTls = sec.Key("tls_mode").String()
-		mysqlConfig.CaPath = sec.Key("ca_path").String()
+		mysqlConfig.SslMode = DbCfg.SslMode
+		mysqlConfig.CaCertPath = sec.Key("ca_cert_path").String()
 		mysqlConfig.ClientKeyPath = sec.Key("client_key_path").String()
 		mysqlConfig.ClientCertPath = sec.Key("client_cert_path").String()
-		mysqlConfig.ServerName = sec.Key("server_name").String()
+		mysqlConfig.ServerCertName = sec.Key("server_cert_name").String()
 	}
 }

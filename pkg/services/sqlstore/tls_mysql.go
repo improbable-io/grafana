@@ -1,15 +1,17 @@
 package sqlstore
+
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 )
 
 func makeCert(tlsPoolName string, config MySQLConfig) (*tls.Config, error) {
 	rootCertPool := x509.NewCertPool()
-	pem, err := ioutil.ReadFile(config.CaPath)
+	pem, err := ioutil.ReadFile(config.CaCertPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Could not read DB CA Cert path: %v", config.CaCertPath)
 	}
 	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
 		return nil, err
@@ -24,13 +26,12 @@ func makeCert(tlsPoolName string, config MySQLConfig) (*tls.Config, error) {
 		RootCAs:      rootCertPool,
 		Certificates: clientCert,
 	}
-	if config.ServerName != "" {
-		tlsConfig.ServerName = config.ServerName
+	if config.ServerCertName != "" {
+		tlsConfig.ServerName = config.ServerCertName
 	}
 
-	if config.UseTls == "skip-verify" {
+	if config.SslMode == "skip-verify" {
 		tlsConfig.InsecureSkipVerify = true
 	}
 	return tlsConfig, nil
 }
-

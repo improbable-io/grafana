@@ -165,11 +165,11 @@ For MySQL, use either `true`, `false`, or `skip-verify`.
 
 ### client_key_path 
 
-(MySQL only) The path to the client key.
+(MySQL only) The path to the client key. Only if server requires client authentication.
 
 ### client_cert_path 
 
-(MySQL only) The path to the client cert.
+(MySQL only) The path to the client cert. Only if server requires client authentication.
 
 ### server_cert_name 
 

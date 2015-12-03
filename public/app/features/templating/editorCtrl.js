@@ -57,6 +57,7 @@ function (angular, _) {
       });
     };
 
+    // TODO(DAN): This should no longer be in use because we removed checkboxes
     $scope.toggleDtsSelection = function(dts) {
       var idx = $scope.dtsSelection.indexOf(dts);
 

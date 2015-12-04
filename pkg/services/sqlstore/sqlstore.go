@@ -126,6 +126,7 @@ func getEngine() (*xorm.Engine, error) {
 	case "mysql":
 		cnnstr = fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8",
 			DbCfg.User, DbCfg.Pwd, DbCfg.Host, DbCfg.Name)
+
 		if mysqlConfig.SslMode == "true" || mysqlConfig.SslMode == "skip-verify" {
 			tlsCert, err := makeCert("custom", mysqlConfig)
 			if err != nil {

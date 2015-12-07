@@ -9,7 +9,7 @@ function (angular, _) {
 
   module.controller('TemplateEditorCtrl', function($scope, datasourceSrv, templateSrv, templateValuesSrv) {
 
-    $scope.includeAllValues = ['glob', 'wildcard', 'regex wildcard', 'regex values', 'lucene', 'pipe', 'empty']
+    $scope.includeAllValues = ['glob', 'wildcard', 'regex wildcard', 'regex values', 'lucene', 'pipe', 'empty'];
 
     var replacementDefaults = {
       type: 'query',

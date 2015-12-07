@@ -319,6 +319,10 @@ function (angular, _, kbn) {
           allValue = _.pluck(variable.options, 'text').join('|');
           break;
         }
+        case 'empty': {
+          allValue = "";
+          break;
+        }
         default: {
           allValue = '{';
           allValue += _.pluck(variable.options, 'text').join(',');

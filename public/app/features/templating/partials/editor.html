@@ -152,13 +152,13 @@
                   <editor-checkbox text="All value" model="current.includeAll" change="runQuery()"></editor-checkbox>
                 </li>
                 <li ng-show="current.includeAll">
-                  <input type="text" class="input-xlarge tight-form-input" style="width:364px" ng-model='current.options[0].value'></input>
+                  <input type="text" class="input-xlarge tight-form-input" style="width:364px" ng-model='current.options[0].value' disabled></input>
                 </li>
                 <li class="tight-form-item" ng-show="current.includeAll">
                   All format
                 </li>
                 <li ng-show="current.includeAll">
-                  <select class="input-medium tight-form-input last" ng-model="current.allFormat" ng-change="runQuery()" ng-options="f for f in ['glob', 'wildcard', 'regex wildcard', 'regex values', 'lucene', 'pipe']"></select>
+                  <select class="input-medium tight-form-input last" ng-model="current.allFormat" ng-change="runQuery()" ng-options="f for f in includeAllValues"></select>
                 </li>
               </ul>
               <div class="clearfix"></div>
@@ -233,13 +233,13 @@
 									<editor-checkbox text="All value" model="current.includeAll" change="runQuery()"></editor-checkbox>
 								</li>
 								<li ng-show="current.includeAll">
-									<input type="text" class="input-xlarge tight-form-input" style="width:364px" ng-model='current.options[0].value'></input>
+									<input type="text" class="input-xlarge tight-form-input" style="width:364px" ng-model='current.options[0].value' disabled></input>
 								</li>
 								<li class="tight-form-item" ng-show="current.includeAll">
 									All format
 								</li>
 								<li ng-show="current.includeAll">
-									<select class="input-medium tight-form-input last" ng-model="current.allFormat" ng-change="runQuery()" ng-options="f for f in ['glob', 'wildcard', 'regex wildcard', 'regex values', 'lucene', 'pipe']"></select>
+									<select class="input-medium tight-form-input last" ng-model="current.allFormat" ng-change="runQuery()" ng-options="f for f in includeAllValues"></select>
 								</li>
 							</ul>
 							<div class="clearfix"></div>
@@ -270,7 +270,7 @@
 								Multi format
 							</li>
 							<li ng-show="current.multi">
-								<select class="input-medium tight-form-input last" ng-model="current.multiFormat" ng-change="runQuery()" ng-options="f for f in ['glob', 'regex values', 'lucene', 'pipe']"></select>
+								<select class="input-medium tight-form-input last" ng-model="current.multiFormat" ng-change="runQuery()" ng-options="f for f in includeAllValues"></select>
 							</li>
 						</ul>
 						<div class="clearfix"></div>

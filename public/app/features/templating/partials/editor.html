@@ -132,6 +132,15 @@
 							</ul>
 							<div class="clearfix"></div>
 						</div>
+						<div class="tight-form">
+							<ul class="tight-form-list">
+								<li class="tight-form-item">
+									<editor-checkbox text="Refresh on load" model="current.refresh_on_load" ></editor-checkbox>
+									<tip>Check if you want values to be updated on dashboard load, will slow down dashboard load time</tip>
+								</li>
+							</ul>
+							<div class="clearfix"></div>
+						</div>
 					</div>
 
 					<div ng-show="current.type === 'custom'">
@@ -146,23 +155,31 @@
 							</ul>
 							<div class="clearfix"></div>
 						</div>
-            <div class="tight-form">
-              <ul class="tight-form-list">
-                <li class="tight-form-item" style="width: 100px;">
-                  <editor-checkbox text="All value" model="current.includeAll" change="runQuery()"></editor-checkbox>
-                </li>
-                <li ng-show="current.includeAll">
-                  <input type="text" class="input-xlarge tight-form-input" style="width:364px" ng-model='current.options[0].value' disabled></input>
-                </li>
-                <li class="tight-form-item" ng-show="current.includeAll">
-                  All format
-                </li>
-                <li ng-show="current.includeAll">
-                  <select class="input-medium tight-form-input last" ng-model="current.allFormat" ng-change="runQuery()" ng-options="f for f in includeAllValues"></select>
-                </li>
-              </ul>
-              <div class="clearfix"></div>
-            </div>
+						<div class="tight-form">
+						  <ul class="tight-form-list">
+							<li class="tight-form-item" style="width: 100px;">
+							  <editor-checkbox text="All value" model="current.includeAll" change="runQuery()"></editor-checkbox>
+							</li>
+							<li ng-show="current.includeAll">
+							  <input type="text" class="input-xlarge tight-form-input" style="width:364px" ng-model='current.options[0].value' disabled></input>
+							</li>
+							<li class="tight-form-item" ng-show="current.includeAll">
+							  All format
+							</li>
+							<li ng-show="current.includeAll">
+							  <select class="input-medium tight-form-input last" ng-model="current.allFormat" ng-change="runQuery()" ng-options="f for f in includeAllValues"></select>
+							</li>
+						  </ul>
+						</div>
+						<div class="tight-form">
+							<ul class="tight-form-list">
+								<li class="tight-form-item">
+									<editor-checkbox text="Refresh on load" model="current.refresh_on_load" ></editor-checkbox>
+									<tip>Check if you want values to be updated on dashboard load, will slow down dashboard load time</tip>
+								</li>
+							</ul>
+							<div class="clearfix"></div>
+						</div>
 					</div>
 					<div ng-show="current.type === 'datasource'">
 						<!--Show Regex-->
@@ -193,7 +210,7 @@
 						<div class="tight-form">
 							<ul class="tight-form-list">
 								<li class="tight-form-item">
-									<editor-checkbox text="Refresh on load" model="current.refresh" ></editor-checkbox>
+									<editor-checkbox text="Refresh on load" model="current.refresh_on_load" ></editor-checkbox>
 									<tip>Check if you want values to be updated on dashboard load, will slow down dashboard load time</tip>
 								</li>
 							</ul>
@@ -248,7 +265,7 @@
 						<div class="tight-form last">
 							<ul class="tight-form-list">
 								<li class="tight-form-item last">
-									<editor-checkbox text="Refresh on load" model="current.refresh"></editor-checkbox>
+									<editor-checkbox text="Refresh on load" model="current.refresh_on_load"></editor-checkbox>
 									<tip>Check if you want values to be updated on dashboard load, will slow down dashboard load time</tip>
 								</li>
 							</ul>

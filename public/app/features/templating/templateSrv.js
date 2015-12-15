@@ -27,8 +27,7 @@ function (angular, _) {
       this._texts = {};
 
       _.each(this.variables, function(variable) {
-        if (!variable.current || !variable.current.isNone && !variable.current.value) { return; }
-
+        if (!variable.current || !variable.current.isNone && variable.current.value === undefined) { return; }
         this._values[variable.name] = this.renderVariableValue(variable);
         this._texts[variable.name] = variable.current.text;
       }, this);
@@ -101,7 +100,7 @@ function (angular, _) {
         }
 
         value = self._values[g1 || g2];
-        if (!value) { return match; }
+        if (value === undefined) { return match; }
 
         return self._grafanaVariables[value] || value;
       });
@@ -122,7 +121,7 @@ function (angular, _) {
 
         value = self._values[g1 || g2];
         text = self._texts[g1 || g2];
-        if (!value) { return match; }
+        if (value === undefined) { return match; }
 
         return self._grafanaVariables[value] || text;
       });

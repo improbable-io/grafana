@@ -72,6 +72,9 @@ function (angular, _, kbn) {
       }
 
       self.selectOptionsForCurrentValue(variable);
+      if (variable.type === "datasource") {
+        datasourceSrv.updateDynamicDatasource(variable.name, variable.current.value);
+      }
 
       templateSrv.updateTemplateData();
       return self.updateOptionsInChildVariables(variable);

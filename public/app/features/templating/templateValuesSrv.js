@@ -157,7 +157,6 @@ function (angular, _, kbn) {
     this.updateOptions = function(variable) {
       if (variable.type === 'datasource') {
         self._updateDataSourceVariable(variable);
-        self._updateNonQueryVariable(variable);
         self.validateVariableSelectionState(variable);
         return $q.when([]);
       }

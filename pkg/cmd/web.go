@@ -23,7 +23,7 @@ func newMacaron() *macaron.Macaron {
 	m := macaron.New()
 
 	m.Use(middleware.Logger())
-	// m.Use(macaron.Recovery()) // infra improb. let it crash and restart
+	// m.Use(macaron.Recovery()) // infra improb. let it crash and restart, see https://github.com/grafana/grafana/issues/3969
 
 	if setting.EnableGzip {
 		m.Use(middleware.Gziper())

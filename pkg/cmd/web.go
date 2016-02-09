@@ -23,7 +23,7 @@ func newMacaron() *macaron.Macaron {
 	m := macaron.New()
 
 	m.Use(middleware.Logger())
-	m.Use(macaron.Recovery())
+	// m.Use(macaron.Recovery()) // infra improb. let it crash and restart
 
 	if setting.EnableGzip {
 		m.Use(middleware.Gziper())

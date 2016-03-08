@@ -1,17 +1,22 @@
 ///<reference path="../../../headers/common.d.ts" />
 
-import _ = require('lodash');
+import _ from 'lodash';
 import queryPart from './query_part';
 
 export default class InfluxQuery {
   target: any;
   selectModels: any[];
-  groupByParts: any;
   queryBuilder: any;
+  groupByParts: any;
+  templateSrv: any;
+  scopedVars: any;
 
-  constructor(target) {
+  constructor(target, templateSrv?, scopedVars?) {
     this.target = target;
+    this.templateSrv = templateSrv;
+    this.scopedVars = scopedVars;
 
+    target.policy = target.policy || 'default';
     target.dsType = 'influxdb';
     target.resultFormat = target.resultFormat || 'time_series';
     target.tags = target.tags || [];
@@ -125,7 +130,7 @@ export default class InfluxQuery {
     this.updatePersistedParts();
   }
 
-  private renderTagCondition(tag, index) {
+  private renderTagCondition(tag, index, interpolate) {
     var str = "";
     var operator = tag.operator;
     var value = tag.value;
@@ -134,7 +139,7 @@ export default class InfluxQuery {
     }
 
     if (!operator) {
-      if (/^\/.*\/$/.test(tag.value)) {
+      if (/^\/.*\/$/.test(value)) {
         operator = '=~';
       } else {
         operator = '=';
@@ -143,21 +148,47 @@ export default class InfluxQuery {
 
     // quote value unless regex
     if (operator !== '=~' && operator !== '!~') {
-      value = "'" + value + "'";
+      if (interpolate) {
+        value = this.templateSrv.replace(value, this.scopedVars);
+      }
+      value = "'" + value.replace('\\', '\\\\') + "'";
+    } else if (interpolate){
+      value = this.templateSrv.replace(value, this.scopedVars, 'regex');
     }
 
     return str + '"' + tag.key + '" ' + operator + ' ' + value;
   }
 
-  render() {
+  getMeasurementAndPolicy() {
+    var policy = this.target.policy;
+    var measurement = this.target.measurement;
+
+    if (!measurement.match('^/.*/')) {
+      measurement = '"' + measurement+ '"';
+    }
+
+    if (policy !== 'default') {
+      policy = '"' + this.target.policy + '".';
+    } else {
+      policy = "";
+    }
+
+    return policy + measurement;
+  }
+
+  render(interpolate?) {
     var target = this.target;
 
     if (target.rawQuery) {
-      return target.query;
+      if (interpolate) {
+        return this.templateSrv.replace(target.query, this.scopedVars, 'regex');
+      } else {
+        return target.query;
+      }
     }
 
     if (!target.measurement) {
-      throw "Metric measurement is missing";
+      throw {message: "Metric measurement is missing"};
     }
 
     var query = 'SELECT ';
@@ -176,14 +207,9 @@ export default class InfluxQuery {
       query += selectText;
     }
 
-    var measurement = target.measurement;
-    if (!measurement.match('^/.*/') && !measurement.match(/^merge\(.*\)/)) {
-measurement = '"' + measurement+ '"';
-    }
-
-    query += ' FROM ' + measurement + ' WHERE ';
+    query += ' FROM ' + this.getMeasurementAndPolicy() + ' WHERE ';
     var conditions = _.map(target.tags, (tag, index) => {
-      return this.renderTagCondition(tag, index);
+      return this.renderTagCondition(tag, index, interpolate);
     });
 
     query += conditions.join(' ');
@@ -206,8 +232,6 @@ measurement = '"' + measurement+ '"';
     if (target.fill) {
       query += ' fill(' + target.fill + ')';
     }
-
-    target.query = query;
 
     return query;
   }

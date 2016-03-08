@@ -1,7 +1,7 @@
 ///<reference path="../headers/common.d.ts" />
 
-import _ = require('lodash');
-import kbn = require('app/core/utils/kbn');
+import kbn from 'app/core/utils/kbn';
+import _ from 'lodash';
 
 function matchSeriesOverride(aliasOrRegex, seriesAlias) {
   if (!aliasOrRegex) { return false; }
@@ -41,6 +41,7 @@ export default class TimeSeries {
   nullPointMode: any;
   fillBelowTo: any;
   transform: any;
+  flotpairs: any;
 
   constructor(opts) {
     this.datapoints = opts.datapoints;
@@ -132,7 +133,7 @@ export default class TimeSeries {
         }
       }
 
-      if (currentValue != 0) {
+      if (currentValue !== 0) {
         this.allIsZero = false;
       }
 
@@ -166,5 +167,34 @@ export default class TimeSeries {
 
   formatValue(value) {
     return this.valueFormater(value, this.decimals, this.scaledDecimals);
+  }
+
+  isMsResolutionNeeded() {
+    for (var i = 0; i<this.datapoints.length; i++) {
+      if (this.datapoints[i][0] !== null) {
+        var timestamp = this.datapoints[i][0].toString();
+        if (timestamp.length === 13 && (timestamp % 1000) !== 0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  hideFromLegend(options) {
+    if (options.hideEmpty && this.allIsNull) {
+      return true;
+    }
+    // ignore series excluded via override
+    if (!this.legend) {
+      return true;
+    }
+
+    // ignore zero series
+    if (options.hideZero && this.allIsZero) {
+      return true;
+    }
+
+    return false;
   }
 }

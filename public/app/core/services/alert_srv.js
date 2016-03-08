@@ -46,6 +46,10 @@ function (angular, _, coreModule) {
         }, timeout);
       }
 
+      if (!$rootScope.$$phase) {
+        $rootScope.$digest();
+      }
+
       return(newAlert);
     };
 
@@ -62,15 +66,16 @@ function (angular, _, coreModule) {
 
       scope.title = payload.title;
       scope.text = payload.text;
+      scope.text2 = payload.text2;
       scope.onConfirm = payload.onConfirm;
       scope.icon = payload.icon || "fa-check";
       scope.yesText = payload.yesText || "Yes";
       scope.noText = payload.noText || "Cancel";
 
       var confirmModal = $modal({
-        template: './app/partials/confirm_modal.html',
+        template: 'public/app/partials/confirm_modal.html',
         persist: false,
-        modalClass: 'modal-no-header confirm-modal',
+        modalClass: 'confirm-modal',
         show: false,
         scope: scope,
         keyboard: false

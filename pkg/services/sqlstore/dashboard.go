@@ -14,6 +14,7 @@ import (
 func init() {
 	bus.AddHandler("sql", SaveDashboard)
 	bus.AddHandler("sql", GetDashboard)
+	bus.AddHandler("sql", GetDashboards)
 	bus.AddHandler("sql", DeleteDashboard)
 	bus.AddHandler("sql", SearchDashboards)
 	bus.AddHandler("sql", GetDashboardTags)
@@ -145,6 +146,19 @@ func SearchDashboards(query *search.FindPersistedDashboardsQuery) error {
 		params = append(params, query.UserId)
 	}
 
+	if len(query.DashboardIds) > 0 {
+		sql.WriteString(" AND (")
+		for i, dashboardId := range query.DashboardIds {
+			if i != 0 {
+				sql.WriteString(" OR")
+			}
+
+			sql.WriteString(" dashboard.id = ?")
+			params = append(params, dashboardId)
+		}
+		sql.WriteString(")")
+	}
+
 	if len(query.Title) > 0 {
 		sql.WriteString(" AND dashboard.title " + dialect.LikeStr() + " ?")
 		params = append(params, "%"+query.Title+"%")
@@ -153,6 +167,7 @@ func SearchDashboards(query *search.FindPersistedDashboardsQuery) error {
 	sql.WriteString(fmt.Sprintf(" ORDER BY dashboard.title ASC LIMIT 1000"))
 
 	var res []DashboardSearchProjection
+
 	err := x.Sql(sql.String(), params...).Find(&res)
 	if err != nil {
 		return err
@@ -222,4 +237,21 @@ func DeleteDashboard(cmd *m.DeleteDashboardCommand) error {
 
 		return nil
 	})
+}
+
+func GetDashboards(query *m.GetDashboardsQuery) error {
+	if len(query.DashboardIds) == 0 {
+		return m.ErrCommandValidationFailed
+	}
+
+	var dashboards = make([]m.Dashboard, 0)
+
+	err := x.In("id", query.DashboardIds).Find(&dashboards)
+	query.Result = &dashboards
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

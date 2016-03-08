@@ -1,8 +1,6 @@
 ///<reference path="../../headers/common.d.ts" />
 
-import _ = require('lodash');
-
-import angular from 'angular';
+import _ from 'lodash';
 import coreModule from '../core_module';
 
 export function arrayJoin() {

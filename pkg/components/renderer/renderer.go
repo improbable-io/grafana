@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/grafana/grafana/pkg/log"
@@ -21,12 +22,18 @@ type RenderOpts struct {
 
 func RenderToPng(params *RenderOpts) (string, error) {
 	log.Info("PhantomRenderer::renderToPng url %v", params.Url)
-	binPath, _ := filepath.Abs(filepath.Join(setting.PhantomDir, "phantomjs"))
+
+	var executable = "phantomjs"
+	if runtime.GOOS == "windows" {
+		executable = executable + ".exe"
+	}
+
+	binPath, _ := filepath.Abs(filepath.Join(setting.PhantomDir, executable))
 	scriptPath, _ := filepath.Abs(filepath.Join(setting.PhantomDir, "render.js"))
 	pngPath, _ := filepath.Abs(filepath.Join(setting.ImagesDir, util.GetRandomString(20)))
 	pngPath = pngPath + ".png"
 
-	cmd := exec.Command(binPath, "--ignore-ssl-errors=true", "--ssl-protocol=any", scriptPath, "url="+params.Url, "width="+params.Width,
+	cmd := exec.Command(binPath, "--ignore-ssl-errors=true", scriptPath, "url="+params.Url, "width="+params.Width,
 		"height="+params.Height, "png="+pngPath, "cookiename="+setting.SessionOptions.CookieName,
 		"domain="+setting.Domain, "sessionid="+params.SessionId)
 	stdout, err := cmd.StdoutPipe()

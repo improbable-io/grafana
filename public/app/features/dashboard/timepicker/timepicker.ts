@@ -1,22 +1,17 @@
 ///<reference path="../../../headers/common.d.ts" />
-///<amd-dependency path="./input_date" name="inputDate" />
 
-import _ = require('lodash');
-import kbn = require('app/core/utils/kbn');
-
+import _ from 'lodash';
 import angular from 'angular';
 import moment from 'moment';
-import * as dateMath from 'app/core/utils/datemath';
-import * as rangeUtil from 'app/core/utils/rangeutil';
 
-declare var inputDate: any;
+import * as rangeUtil from 'app/core/utils/rangeutil';
 
 export class TimePickerCtrl {
 
   static tooltipFormat = 'MMM D, YYYY HH:mm:ss';
   static defaults = {
-    time_options  : ['5m','15m','1h','6h','12h','24h','2d','7d','30d'],
-    refresh_intervals : ['5s','10s','30s','1m','5m','15m','30m','1h','2h','1d'],
+    time_options: ['5m', '15m', '1h', '6h', '12h', '24h', '2d', '7d', '30d'],
+    refresh_intervals: ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'],
   };
 
   dashboard: any;
@@ -106,7 +101,7 @@ export class TimePickerCtrl {
     this.refresh.options.unshift({text: 'off'});
 
     this.$rootScope.appEvent('show-dash-editor', {
-      src: 'app/features/dashboard/timepicker/dropdown.html',
+      src: 'public/app/features/dashboard/timepicker/dropdown.html',
       scope: this.$scope,
       cssClass: 'gf-timepicker-dropdown',
     });
@@ -134,8 +129,6 @@ export class TimePickerCtrl {
   }
 
   setRelativeFilter(timespan) {
-    this.panel.now = true;
-
     var range = {from: timespan.from, to: timespan.to};
 
     if (this.panel.nowDelay && range.to === 'now') {
@@ -149,10 +142,9 @@ export class TimePickerCtrl {
 }
 
 export function settingsDirective() {
-  'use strict';
   return {
     restrict: 'E',
-    templateUrl: 'app/features/dashboard/timepicker/settings.html',
+    templateUrl: 'public/app/features/dashboard/timepicker/settings.html',
     controller: TimePickerCtrl,
     bindToController: true,
     controllerAs: 'ctrl',
@@ -163,10 +155,9 @@ export function settingsDirective() {
 }
 
 export function timePickerDirective() {
-  'use strict';
   return {
     restrict: 'E',
-    templateUrl: 'app/features/dashboard/timepicker/timepicker.html',
+    templateUrl: 'public/app/features/dashboard/timepicker/timepicker.html',
     controller: TimePickerCtrl,
     bindToController: true,
     controllerAs: 'ctrl',
@@ -179,3 +170,6 @@ export function timePickerDirective() {
 
 angular.module('grafana.directives').directive('gfTimePickerSettings', settingsDirective);
 angular.module('grafana.directives').directive('gfTimePicker', timePickerDirective);
+
+import {inputDateDirective} from './input_date';
+angular.module("grafana.directives").directive('inputDatetime', inputDateDirective);

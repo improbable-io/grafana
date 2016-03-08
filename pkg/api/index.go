@@ -4,6 +4,7 @@ import (
 	"github.com/grafana/grafana/pkg/api/dtos"
 	"github.com/grafana/grafana/pkg/middleware"
 	m "github.com/grafana/grafana/pkg/models"
+	"github.com/grafana/grafana/pkg/plugins"
 	"github.com/grafana/grafana/pkg/setting"
 )
 
@@ -35,7 +36,7 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 	}
 
 	if setting.DisableGravatar {
-		data.User.GravatarUrl = setting.AppSubUrl + "/img/user_profile.png"
+		data.User.GravatarUrl = setting.AppSubUrl + "/public/img/transparent.png"
 	}
 
 	if len(data.User.Name) == 0 {
@@ -49,15 +50,69 @@ func setIndexViewData(c *middleware.Context) (*dtos.IndexViewData, error) {
 
 	data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
 		Text: "Dashboards",
-		Icon: "fa fa-fw fa-th-large",
-		Href: "/",
+		Icon: "icon-gf icon-gf-dashboard",
+		Url:  setting.AppSubUrl + "/",
+		Children: []*dtos.NavLink{
+			{Text: "Home", Url: setting.AppSubUrl + "/"},
+			{Text: "Playlists", Url: setting.AppSubUrl + "/playlists"},
+			{Text: "Snapshots", Url: setting.AppSubUrl + "/dashboard/snapshots"},
+			{Divider: true},
+			{Text: "New", Url: setting.AppSubUrl + "/dashboard/new"},
+			{Text: "Import", Url: setting.AppSubUrl + "/import/dashboard"},
+		},
 	})
 
 	if c.OrgRole == m.ROLE_ADMIN {
 		data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
 			Text: "Data Sources",
-			Icon: "fa fa-fw fa-database",
-			Href: "/datasources",
+			Icon: "icon-gf icon-gf-datasources",
+			Url:  setting.AppSubUrl + "/datasources",
+		})
+
+		data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
+			Text: "Plugins",
+			Icon: "icon-gf icon-gf-apps",
+			Url:  setting.AppSubUrl + "/plugins",
+		})
+	}
+
+	enabledPlugins, err := plugins.GetEnabledPlugins(c.OrgId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, plugin := range enabledPlugins.Apps {
+		if plugin.Pinned {
+			pageLink := &dtos.NavLink{
+				Text: plugin.Name,
+				Url:  setting.AppSubUrl + "/plugins/" + plugin.Id + "/edit",
+				Img:  plugin.Info.Logos.Small,
+			}
+
+			for _, page := range plugin.Pages {
+				if !page.SuppressNav {
+					pageLink.Children = append(pageLink.Children, &dtos.NavLink{
+						Url:  setting.AppSubUrl + "/plugins/" + plugin.Id + "/page/" + page.Slug,
+						Text: page.Name,
+					})
+				}
+			}
+
+			data.MainNavLinks = append(data.MainNavLinks, pageLink)
+		}
+	}
+
+	if c.IsGrafanaAdmin {
+		data.MainNavLinks = append(data.MainNavLinks, &dtos.NavLink{
+			Text: "Admin",
+			Icon: "fa fa-fw fa-cogs",
+			Url:  setting.AppSubUrl + "/admin",
+			Children: []*dtos.NavLink{
+				{Text: "Global Users", Icon: "fa fa-fw fa-cogs", Url: setting.AppSubUrl + "/admin/users"},
+				{Text: "Global Orgs", Icon: "fa fa-fw fa-cogs", Url: setting.AppSubUrl + "/admin/orgs"},
+				{Text: "Server Settings", Icon: "fa fa-fw fa-cogs", Url: setting.AppSubUrl + "/admin/settings"},
+				{Text: "Server Stats", Icon: "fa-fw fa-cogs", Url: setting.AppSubUrl + "/admin/stats"},
+			},
 		})
 	}
 

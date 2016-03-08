@@ -6,9 +6,9 @@ function ($, coreModule) {
   'use strict';
 
   var editViewMap = {
-    'settings':    { src: 'app/features/dashboard/partials/settings.html', title: "Settings" },
-    'annotations': { src: 'app/features/annotations/partials/editor.html', title: "Annotations" },
-    'templating':  { src: 'app/features/templating/partials/editor.html', title: "Templating" }
+    'settings':    { src: 'public/app/features/dashboard/partials/settings.html', title: "Settings" },
+    'annotations': { src: 'public/app/features/annotations/partials/editor.html', title: "Annotations" },
+    'templating':  { src: 'public/app/features/templating/partials/editor.html', title: "Templating" }
   };
 
   coreModule.default.directive('dashEditorLink', function($timeout) {
@@ -73,12 +73,7 @@ function ($, coreModule) {
           };
 
           var src = "'" + payload.src + "'";
-          var cssClass = payload.cssClass || 'gf-box';
-          var view = $('<div class="' + cssClass + '" ng-include="' + src + '"></div>');
-
-          if (payload.cssClass) {
-            view.addClass(payload.cssClass);
-          }
+          var view = $('<div class="tabbed-view" ng-include="' + src + '"></div>');
 
           elem.append(view);
           $compile(elem.contents())(editorScope);

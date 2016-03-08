@@ -33,6 +33,7 @@ func init() {
 	actionHandlers = map[string]actionHandler{
 		"GetMetricStatistics":     handleGetMetricStatistics,
 		"ListMetrics":             handleListMetrics,
+		"DescribeAlarms":          handleDescribeAlarms,
 		"DescribeAlarmsForMetric": handleDescribeAlarmsForMetric,
 		"DescribeAlarmHistory":    handleDescribeAlarmHistory,
 		"DescribeInstances":       handleDescribeInstances,
@@ -43,18 +44,29 @@ func init() {
 	}
 }
 
-func handleGetMetricStatistics(req *cwRequest, c *middleware.Context) {
+var awsCredentials map[string]*credentials.Credentials = make(map[string]*credentials.Credentials)
+
+func getCredentials(profile string) *credentials.Credentials {
+	if _, ok := awsCredentials[profile]; ok {
+		return awsCredentials[profile]
+	}
+
 	sess := session.New()
 	creds := credentials.NewChainCredentials(
 		[]credentials.Provider{
 			&credentials.EnvProvider{},
-			&credentials.SharedCredentialsProvider{Filename: "", Profile: req.DataSource.Database},
+			&credentials.SharedCredentialsProvider{Filename: "", Profile: profile},
 			&ec2rolecreds.EC2RoleProvider{Client: ec2metadata.New(sess), ExpiryWindow: 5 * time.Minute},
 		})
+	awsCredentials[profile] = creds
 
+	return creds
+}
+
+func handleGetMetricStatistics(req *cwRequest, c *middleware.Context) {
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: creds,
+		Credentials: getCredentials(req.DataSource.Database),
 	}
 
 	svc := cloudwatch.New(session.New(cfg), cfg)
@@ -92,17 +104,9 @@ func handleGetMetricStatistics(req *cwRequest, c *middleware.Context) {
 }
 
 func handleListMetrics(req *cwRequest, c *middleware.Context) {
-	sess := session.New()
-	creds := credentials.NewChainCredentials(
-		[]credentials.Provider{
-			&credentials.EnvProvider{},
-			&credentials.SharedCredentialsProvider{Filename: "", Profile: req.DataSource.Database},
-			&ec2rolecreds.EC2RoleProvider{Client: ec2metadata.New(sess), ExpiryWindow: 5 * time.Minute},
-		})
-
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: creds,
+		Credentials: getCredentials(req.DataSource.Database),
 	}
 
 	svc := cloudwatch.New(session.New(cfg), cfg)
@@ -139,18 +143,53 @@ func handleListMetrics(req *cwRequest, c *middleware.Context) {
 	c.JSON(200, resp)
 }
 
-func handleDescribeAlarmsForMetric(req *cwRequest, c *middleware.Context) {
-	sess := session.New()
-	creds := credentials.NewChainCredentials(
-		[]credentials.Provider{
-			&credentials.EnvProvider{},
-			&credentials.SharedCredentialsProvider{Filename: "", Profile: req.DataSource.Database},
-			&ec2rolecreds.EC2RoleProvider{Client: ec2metadata.New(sess), ExpiryWindow: 5 * time.Minute},
-		})
-
+func handleDescribeAlarms(req *cwRequest, c *middleware.Context) {
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: creds,
+		Credentials: getCredentials(req.DataSource.Database),
+	}
+
+	svc := cloudwatch.New(session.New(cfg), cfg)
+
+	reqParam := &struct {
+		Parameters struct {
+			ActionPrefix    string    `json:"actionPrefix"`
+			AlarmNamePrefix string    `json:"alarmNamePrefix"`
+			AlarmNames      []*string `json:"alarmNames"`
+			StateValue      string    `json:"stateValue"`
+		} `json:"parameters"`
+	}{}
+	json.Unmarshal(req.Body, reqParam)
+
+	params := &cloudwatch.DescribeAlarmsInput{
+		MaxRecords: aws.Int64(100),
+	}
+	if reqParam.Parameters.ActionPrefix != "" {
+		params.ActionPrefix = aws.String(reqParam.Parameters.ActionPrefix)
+	}
+	if reqParam.Parameters.AlarmNamePrefix != "" {
+		params.AlarmNamePrefix = aws.String(reqParam.Parameters.AlarmNamePrefix)
+	}
+	if len(reqParam.Parameters.AlarmNames) != 0 {
+		params.AlarmNames = reqParam.Parameters.AlarmNames
+	}
+	if reqParam.Parameters.StateValue != "" {
+		params.StateValue = aws.String(reqParam.Parameters.StateValue)
+	}
+
+	resp, err := svc.DescribeAlarms(params)
+	if err != nil {
+		c.JsonApiErr(500, "Unable to call AWS API", err)
+		return
+	}
+
+	c.JSON(200, resp)
+}
+
+func handleDescribeAlarmsForMetric(req *cwRequest, c *middleware.Context) {
+	cfg := &aws.Config{
+		Region:      aws.String(req.Region),
+		Credentials: getCredentials(req.DataSource.Database),
 	}
 
 	svc := cloudwatch.New(session.New(cfg), cfg)
@@ -188,17 +227,9 @@ func handleDescribeAlarmsForMetric(req *cwRequest, c *middleware.Context) {
 }
 
 func handleDescribeAlarmHistory(req *cwRequest, c *middleware.Context) {
-	sess := session.New()
-	creds := credentials.NewChainCredentials(
-		[]credentials.Provider{
-			&credentials.EnvProvider{},
-			&credentials.SharedCredentialsProvider{Filename: "", Profile: req.DataSource.Database},
-			&ec2rolecreds.EC2RoleProvider{Client: ec2metadata.New(sess), ExpiryWindow: 5 * time.Minute},
-		})
-
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: creds,
+		Credentials: getCredentials(req.DataSource.Database),
 	}
 
 	svc := cloudwatch.New(session.New(cfg), cfg)
@@ -232,17 +263,9 @@ func handleDescribeAlarmHistory(req *cwRequest, c *middleware.Context) {
 }
 
 func handleDescribeInstances(req *cwRequest, c *middleware.Context) {
-	sess := session.New()
-	creds := credentials.NewChainCredentials(
-		[]credentials.Provider{
-			&credentials.EnvProvider{},
-			&credentials.SharedCredentialsProvider{Filename: "", Profile: req.DataSource.Database},
-			&ec2rolecreds.EC2RoleProvider{Client: ec2metadata.New(sess), ExpiryWindow: 5 * time.Minute},
-		})
-
 	cfg := &aws.Config{
 		Region:      aws.String(req.Region),
-		Credentials: creds,
+		Credentials: getCredentials(req.DataSource.Database),
 	}
 
 	svc := ec2.New(session.New(cfg), cfg)

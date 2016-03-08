@@ -60,7 +60,7 @@ function (angular, _, kbn) {
         variable.options.unshift({ text: 'auto', value: '$__auto_interval' });
       }
 
-      var interval = kbn.calculateInterval(timeSrv.timeRange(), variable.auto_count);
+      var interval = kbn.calculateInterval(timeSrv.timeRange(), variable.auto_count, (variable.auto_min ? ">"+variable.auto_min : null));
       templateSrv.setGrafanaVariable('$__auto_interval', interval);
     };
 
@@ -126,7 +126,6 @@ function (angular, _, kbn) {
       if (variable.type === 'custom' && variable.includeAll) {
         self.addAllOption(variable);
       }
-
     };
 
     // This creates a query based on the type we've chosen. Also parses regex. The end result is options is filled
@@ -275,22 +274,8 @@ function (angular, _, kbn) {
 
       return _.map(_.keys(options).sort(), function(key) {
         var option = { text: key, value: key };
-
-        // check if values need to be regex escaped
-        if (self.shouldRegexEscape(variable)) {
-          option.value = self.regexEscape(option.value);
-        }
-
         return option;
       });
-    };
-
-    this.shouldRegexEscape = function(variable) {
-      return (variable.includeAll || variable.multi) && variable.allFormat.indexOf('regex') !== -1;
-    };
-
-    this.regexEscape = function(value) {
-      return value.replace(/[-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, '\\$&');
     };
 
     this.addAllOption = function(variable) {
@@ -332,7 +317,7 @@ function (angular, _, kbn) {
         }
       }
 
-      variable.options.unshift({text: 'All', value: allValue});
+      variable.options.unshift({text: 'All', value: "$__all"});
     };
 
   });

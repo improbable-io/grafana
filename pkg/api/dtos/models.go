@@ -7,6 +7,7 @@ import (
 	"time"
 
 	m "github.com/grafana/grafana/pkg/models"
+	"github.com/grafana/grafana/pkg/setting"
 )
 
 type LoginCommand struct {
@@ -42,6 +43,8 @@ type DashboardMeta struct {
 	Created    time.Time `json:"created"`
 	Updated    time.Time `json:"updated"`
 	UpdatedBy  string    `json:"updatedBy"`
+	CreatedBy  string    `json:"createdBy"`
+	Version    int       `json:"version"`
 }
 
 type DashboardFullWithMeta struct {
@@ -64,7 +67,7 @@ type DataSource struct {
 	BasicAuthPassword string                 `json:"basicAuthPassword"`
 	WithCredentials   bool                   `json:"withCredentials"`
 	IsDefault         bool                   `json:"isDefault"`
-	JsonData          map[string]interface{} `json:"jsonData"`
+	JsonData          map[string]interface{} `json:"jsonData,omitempty"`
 }
 
 type MetricQueryResultDto struct {
@@ -87,5 +90,5 @@ func GetGravatarUrl(text string) string {
 
 	hasher := md5.New()
 	hasher.Write([]byte(strings.ToLower(text)))
-	return fmt.Sprintf("https://secure.gravatar.com/avatar/%x?s=90&default=mm", hasher.Sum(nil))
+	return fmt.Sprintf(setting.AppSubUrl+"/avatar/%x", hasher.Sum(nil))
 }

@@ -7,33 +7,27 @@ define([
   './index_pattern',
   './elastic_response',
   './query_ctrl',
-  './directives'
 ],
 function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticResponse) {
   'use strict';
 
-  var module = angular.module('grafana.services');
+  /** @ngInject */
+  function ElasticDatasource(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
+    this.basicAuth = instanceSettings.basicAuth;
+    this.withCredentials = instanceSettings.withCredentials;
+    this.url = instanceSettings.url;
+    this.name = instanceSettings.name;
+    this.index = instanceSettings.index;
+    this.timeField = instanceSettings.jsonData.timeField;
+    this.esVersion = instanceSettings.jsonData.esVersion;
+    this.indexPattern = new IndexPattern(instanceSettings.index, instanceSettings.jsonData.interval);
+    this.interval = instanceSettings.jsonData.timeInterval;
+    this.queryBuilder = new ElasticQueryBuilder({
+      timeField: this.timeField,
+      esVersion: this.esVersion,
+    });
 
-  module.factory('ElasticDatasource', function($q, backendSrv, templateSrv, timeSrv) {
-
-    function ElasticDatasource(datasource) {
-      this.type = 'elasticsearch';
-      this.basicAuth = datasource.basicAuth;
-      this.withCredentials = datasource.withCredentials;
-      this.url = datasource.url;
-      this.name = datasource.name;
-      this.index = datasource.index;
-      this.timeField = datasource.jsonData.timeField;
-      this.esVersion = datasource.jsonData.esVersion;
-      this.indexPattern = new IndexPattern(datasource.index, datasource.jsonData.interval);
-      this.interval = datasource.jsonData.timeInterval;
-      this.queryBuilder = new ElasticQueryBuilder({
-        timeField: this.timeField,
-        esVersion: this.esVersion,
-      });
-    }
-
-    ElasticDatasource.prototype._request = function(method, url, data) {
+    this._request = function(method, url, data) {
       var options = {
         url: this.url + "/" + url,
         method: method,
@@ -52,21 +46,21 @@ function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticRes
       return backendSrv.datasourceRequest(options);
     };
 
-    ElasticDatasource.prototype._get = function(url) {
-      return this._request('GET', this.indexPattern.getIndexForToday() + url)
-        .then(function(results) {
-          return results.data;
-        });
+    this._get = function(url) {
+      return this._request('GET', this.indexPattern.getIndexForToday() + url).then(function(results) {
+        results.data.$$config = results.config;
+        return results.data;
+      });
     };
 
-    ElasticDatasource.prototype._post = function(url, data) {
-      return this._request('POST', url, data)
-        .then(function(results) {
-          return results.data;
-        });
+    this._post = function(url, data) {
+      return this._request('POST', url, data).then(function(results) {
+        results.data.$$config = results.config;
+        return results.data;
+      });
     };
 
-    ElasticDatasource.prototype.annotationQuery = function(options) {
+    this.annotationQuery = function(options) {
       var annotation = options.annotation;
       var timeField = annotation.timeField || '@timestamp';
       var queryString = annotation.query || '*';
@@ -147,25 +141,25 @@ function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticRes
       });
     };
 
-    ElasticDatasource.prototype.testDatasource = function() {
+    this.testDatasource = function() {
       return this._get('/_stats').then(function() {
         return { status: "success", message: "Data source is working", title: "Success" };
       }, function(err) {
         if (err.data && err.data.error) {
-          return { status: "error", message: err.data.error, title: "Error" };
+          return { status: "error", message: angular.toJson(err.data.error), title: "Error" };
         } else {
           return { status: "error", message: err.status, title: "Error" };
         }
       });
     };
 
-    ElasticDatasource.prototype.getQueryHeader = function(searchType, timeFrom, timeTo) {
+    this.getQueryHeader = function(searchType, timeFrom, timeTo) {
       var header = {search_type: searchType, "ignore_unavailable": true};
       header.index = this.indexPattern.getIndexList(timeFrom, timeTo);
       return angular.toJson(header);
     };
 
-    ElasticDatasource.prototype.query = function(options) {
+    this.query = function(options) {
       var payload = "";
       var target;
       var sentTargets = [];
@@ -176,7 +170,10 @@ function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticRes
 
         var queryObj = this.queryBuilder.build(target);
         var esQuery = angular.toJson(queryObj);
-        var luceneQuery = angular.toJson(target.query || '*');
+        var luceneQuery = target.query || '*';
+        luceneQuery = templateSrv.replace(luceneQuery, options.scopedVars, 'lucene');
+        luceneQuery = angular.toJson(luceneQuery);
+
         // remove inner quotes
         luceneQuery = luceneQuery.substr(1, luceneQuery.length - 2);
         esQuery = esQuery.replace("$lucene_query", luceneQuery);
@@ -203,7 +200,7 @@ function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticRes
       });
     };
 
-    ElasticDatasource.prototype.getFields = function(query) {
+    this.getFields = function(query) {
       return this._get('/_mapping').then(function(res) {
         var fields = {};
         var typeMap = {
@@ -240,7 +237,7 @@ function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticRes
       });
     };
 
-    ElasticDatasource.prototype.getTerms = function(queryDef) {
+    this.getTerms = function(queryDef) {
       var range = timeSrv.timeRange();
       var header = this.getQueryHeader('count', range.from, range.to);
       var esQuery = angular.toJson(this.queryBuilder.getTermsQuery(queryDef));
@@ -258,7 +255,7 @@ function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticRes
       });
     };
 
-    ElasticDatasource.prototype.metricFindQuery = function(query) {
+    this.metricFindQuery = function(query) {
       query = templateSrv.replace(query);
       query = angular.fromJson(query);
       if (!query) {
@@ -273,14 +270,14 @@ function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticRes
       }
     };
 
-    ElasticDatasource.prototype.getDashboard = function(id) {
+    this.getDashboard = function(id) {
       return this._get('/dashboard/' + id)
       .then(function(result) {
         return angular.fromJson(result._source.dashboard);
       });
     };
 
-    ElasticDatasource.prototype.searchDashboards = function() {
+    this.searchDashboards = function() {
       var query = {
         query: { query_string: { query: '*' } },
         size: 10000,
@@ -308,7 +305,9 @@ function (angular, _, moment, kbn, ElasticQueryBuilder, IndexPattern, ElasticRes
         return displayHits;
       });
     };
+  }
 
-    return ElasticDatasource;
-  });
+  return {
+    ElasticDatasource: ElasticDatasource
+  };
 });

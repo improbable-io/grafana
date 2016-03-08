@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/grafana/grafana/pkg/api/dtos"
 	"github.com/grafana/grafana/pkg/bus"
+	//"github.com/grafana/grafana/pkg/log"
 	"github.com/grafana/grafana/pkg/middleware"
 	m "github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/plugins"
@@ -115,13 +116,51 @@ func UpdateDataSource(c *middleware.Context, cmd m.UpdateDataSourceCommand) {
 }
 
 func GetDataSourcePlugins(c *middleware.Context) {
-	dsList := make(map[string]interface{})
+	dsList := make(map[string]*plugins.DataSourcePlugin)
 
-	for key, value := range plugins.DataSources {
-		if !value.BuiltIn {
-			dsList[key] = value
+	if enabledPlugins, err := plugins.GetEnabledPlugins(c.OrgId); err != nil {
+		c.JsonApiErr(500, "Failed to get org apps", err)
+		return
+	} else {
+
+		for key, value := range enabledPlugins.DataSources {
+			if !value.BuiltIn {
+				dsList[key] = value
+			}
 		}
+
+		c.JSON(200, dsList)
+	}
+}
+
+// Get /api/datasources/name/:name
+func GetDataSourceByName(c *middleware.Context) Response {
+	query := m.GetDataSourceByNameQuery{Name: c.Params(":name"), OrgId: c.OrgId}
+
+	if err := bus.Dispatch(&query); err != nil {
+		if err == m.ErrDataSourceNotFound {
+			return ApiError(404, "Data source not found", nil)
+		}
+		return ApiError(500, "Failed to query datasources", err)
 	}
 
-	c.JSON(200, dsList)
+	ds := query.Result
+
+	return Json(200, &dtos.DataSource{
+		Id:                ds.Id,
+		OrgId:             ds.OrgId,
+		Name:              ds.Name,
+		Url:               ds.Url,
+		Type:              ds.Type,
+		Access:            ds.Access,
+		Password:          ds.Password,
+		Database:          ds.Database,
+		User:              ds.User,
+		BasicAuth:         ds.BasicAuth,
+		BasicAuthUser:     ds.BasicAuthUser,
+		BasicAuthPassword: ds.BasicAuthPassword,
+		WithCredentials:   ds.WithCredentials,
+		IsDefault:         ds.IsDefault,
+		JsonData:          ds.JsonData,
+	})
 }

@@ -77,7 +77,7 @@ function (angular, $, config, _, moment) {
       datasourceSrv.resetDynamicDatasources();
 
       if (dashboard.templating) {
-        dashboard.templating.list.forEach(function(variable) {
+        _.each(dashboard.templating.list, function(variable) {
           if (variable.type === 'datasource') {
             datasourceSrv.addDynamicDatasource(variable.name, variable.current.value);
           }

@@ -79,7 +79,7 @@ function (angular, $, config, _, moment) {
       if (dashboard.templating) {
         dashboard.templating.list.forEach(function(variable) {
           if (variable.type === 'datasource') {
-           datasourceSrv.addDynamicDatasource(variable.name, variable.current.value);
+            datasourceSrv.addDynamicDatasource(variable.name, variable.current.value);
           }
         });
       }

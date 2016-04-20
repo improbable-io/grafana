@@ -8,6 +8,8 @@
   });
 })();
 
+// Listen to url changes if in an iframe and send them to the parent window (e.g. inspector app)
+// This is used to allow copy-pasting of Inspector URLs that reflect the child window state
 (function() {
   'use strict';
 
@@ -25,7 +27,7 @@
           url = url.substring(host.length);
         }
 
-        // Send the url to the parent frame - the inspector app
+        // Send the url to the parent frame
         window.parent.postMessage({
           metrics_url: url
         }, '*');

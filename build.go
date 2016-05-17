@@ -201,7 +201,9 @@ func createRpmPackages() {
 
 func createLinuxPackages() {
 	createDebPackages()
-	createRpmPackages()
+  // Improbable hacks: Our current build flow doesn't require rpm.
+	// createRpmPackages()
+  // End of improbable hacks
 }
 
 func createPackage(options linuxPackageOptions) {

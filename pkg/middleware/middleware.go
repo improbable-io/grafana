@@ -40,9 +40,12 @@ func GetContextHandler() macaron.Handler {
 		// then init session and look for userId in session
 		// then look for api key in session (special case for render calls via api)
 		// then test if anonymous access is enabled
-    // Improbable hacks: don't check for auth header as we use that for our stuff if initContextWithApiKey(ctx) ||
+
+    	// Improbable hacks: don't check for auth header as we use that for our stuff 
+    	//if initContextWithApiKey(ctx) ||
+			// initContextWithBasicAuth(ctx) ||
+		// End of improbable hacks
 		if
-			initContextWithBasicAuth(ctx) ||
 			initContextWithAuthProxy(ctx) ||
 			initContextWithUserSessionCookie(ctx) ||
 			initContextWithApiKeyFromSession(ctx) ||
